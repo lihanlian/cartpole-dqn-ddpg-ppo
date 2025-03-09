@@ -1,0 +1,22 @@
+task_name: ${task.name}  # Dynamically set task name
+num_envs: 128            # Global parameter (overrides task-specific value if specified)
+seed: 42                 # Global seed value
+torch_deterministic: False
+
+
+# Device Configuration
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+total_steps: 10000
+headless: False
+
+defaults:
+  - task: Cartpole  # Load the task-specific configuration
+  - _self_          # Include base config.yaml settings
+
+hydra:
+  output_subdir: null     # Disable output subdirectories
+  run:
+    dir: .                # Set working directory to current directory

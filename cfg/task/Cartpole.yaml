@@ -1,0 +1,31 @@
+# used to create the object
+name: Cartpole
+
+physics_engine: ${..physics_engine}
+
+# if given, will override the device setting in gym. 
+env:
+  numEnvs: ${resolve_default:128,${...num_envs}}
+  envSpacing: 4.0
+  resetDist: 3.0
+  maxEffort: 400.0
+
+  clipObservations: 5.0
+  clipActions: 1.0
+
+  asset:
+    assetRoot: "../../assets"
+    assetFileName: "urdf/cartpole.urdf"
+
+  # set to True if you use camera sensors in the environment
+  enableCameraSensors: False
+
+sim:
+  dt: 0.0166 # 1/60 s
+  substeps: 2 
+  up_axis: "z"
+  use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+  gravity: [0.0, 0.0, -9.81]
+
+task:
+  randomize: False

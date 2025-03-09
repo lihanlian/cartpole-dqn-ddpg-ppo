@@ -1,0 +1,35 @@
+task:
+  name: Cartpole
+  physics_engine: ${..physics_engine}
+  env:
+    numEnvs: ${resolve_default:128,${...num_envs}}
+    envSpacing: 4.0
+    resetDist: 3.0
+    maxEffort: 400.0
+    clipObservations: 5.0
+    clipActions: 1.0
+    asset:
+      assetRoot: ../../assets
+      assetFileName: urdf/cartpole.urdf
+    enableCameraSensors: false
+  sim:
+    dt: 0.0166
+    substeps: 2
+    up_axis: z
+    use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+    gravity:
+    - 0.0
+    - 0.0
+    - -9.81
+  task:
+    randomize: false
+task_name: ${task.name}
+num_envs: 128
+seed: 42
+torch_deterministic: false
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+total_steps: 10000
+headless: false
