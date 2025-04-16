@@ -55,3 +55,40 @@ class DDPGActor(nn.Module):
         x = self.fc3(x)
         x = torch.tanh(x)
         return x
+
+# define network architecture here
+class PPONet(nn.Module):
+    def __init__(self, num_obs=4, num_act=1):
+        super(PPONet, self).__init__()
+        # we use a shared backbone for both actor and critic
+        self.shared_net = nn.Sequential(
+            nn.Linear(num_obs, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 256),
+            nn.LeakyReLU()
+        )
+
+        # mean and variance for Actor Network
+        self.to_mean = nn.Sequential(
+            nn.Linear(256, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, num_act),
+            nn.Tanh()
+        )
+
+        # value for Critic Network
+        self.to_value = nn.Sequential(
+            nn.Linear(256, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 1),
+        )
+
+    def pi(self, x):
+        x = self.shared_net(x)
+        mu = self.to_mean(x)
+        return mu
+
+    def v(self, x):
+        x = self.shared_net(x)
+        x = self.to_value(x)
+        return x

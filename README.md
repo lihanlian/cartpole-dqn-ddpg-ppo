@@ -30,9 +30,6 @@ To view training result using tensorboard (--port=6006 is used for specifying po
  - run _train_ppo.py_ to start the main program for training agent using PPO (no need for replay buffer). 
  - RL aglorithms are written in _dqn.py_, _ddpg.py_ and _ppo_.py.
  - Configuration files are stored in _cfg_ folder. Training information files are stored in _runs_ folder (TensorBoard events files and used yaml files for training).
-
-## To  Do
- - Add _ppo.py_ and _train_ppo.py_
  
 ## References
  - [minimal-isaac-gym](https://github.com/lorenmt/minimal-isaac-gym) & [DDPG-Pytorch](https://github.com/XinJingHao/DDPG-Pytorch) [Github]

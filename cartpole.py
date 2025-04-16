@@ -2,6 +2,7 @@ from isaacgym import gymapi
 from isaacgym import gymtorch
 from isaacgym.torch_utils import *
 import torch
+from utils import set_seed
 
 """
    Cartpole environment built on top of Isaac Gym.
@@ -12,6 +13,7 @@ import torch
 class Cartpole:
     def __init__(self, cfg):
         self.cfg = cfg
+        set_seed(self.cfg.seed)
 
         # configure sim (gravity is pointing down)
         sim_params = gymapi.SimParams()
