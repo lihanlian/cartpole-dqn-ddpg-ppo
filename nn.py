@@ -56,39 +56,54 @@ class DDPGActor(nn.Module):
         x = torch.tanh(x)
         return x
 
-# define network architecture here
-class PPONet(nn.Module):
-    def __init__(self, num_obs=4, num_act=1):
-        super(PPONet, self).__init__()
-        # we use a shared backbone for both actor and critic
-        self.shared_net = nn.Sequential(
-            nn.Linear(num_obs, 256),
+class PPOPolicyNetwork(nn.Module):
+    """
+    Continuous action policy network.
+    """
+    def __init__(self, num_obs: int = 4, num_act: int = 1, hidden_size: int = 256):
+        super(PPOPolicyNetwork, self).__init__()
+
+        self.backbone = nn.Sequential(
+            nn.Linear(num_obs, hidden_size),
             nn.LeakyReLU(),
-            nn.Linear(256, 256),
-            nn.LeakyReLU()
+            nn.Linear(hidden_size, hidden_size),
+            nn.LeakyReLU(),
+        )
+        # Mean head
+        self.mean_head = nn.Sequential(
+            nn.Linear(hidden_size, num_act),
+            nn.Tanh()             # action space is normalized to [-1,1]
         )
 
-        # mean and variance for Actor Network
-        self.to_mean = nn.Sequential(
-            nn.Linear(256, 256),
+    def forward(self, x: torch.Tensor):
+        """
+        :param x:    Tensor of shape [batch_size, num_obs]
+        :returns:    mean Tensor [batch_size, num_act],
+                     std Tensor [num_act] (broadcastable over batch)
+        """
+        features = self.backbone(x)
+        mean = self.mean_head(features)
+        return mean
+
+class PPOValueNetwork(nn.Module):
+    """
+    State‐value function approximator.
+    Outputs a single scalar V(x) per input state.
+    """
+    def __init__(self, num_obs: int = 4, hidden_size: int = 256):
+        super(PPOValueNetwork, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(num_obs, hidden_size),
             nn.LeakyReLU(),
-            nn.Linear(256, num_act),
-            nn.Tanh()
+            nn.Linear(hidden_size, hidden_size),
+            nn.LeakyReLU(),
+            nn.Linear(hidden_size, 1)
         )
 
-        # value for Critic Network
-        self.to_value = nn.Sequential(
-            nn.Linear(256, 256),
-            nn.LeakyReLU(),
-            nn.Linear(256, 1),
-        )
-
-    def pi(self, x):
-        x = self.shared_net(x)
-        mu = self.to_mean(x)
-        return mu
-
-    def v(self, x):
-        x = self.shared_net(x)
-        x = self.to_value(x)
-        return x
+    def forward(self, x: torch.Tensor):
+        """
+        :param x:  Tensor of shape [batch_size, num_obs]
+        :returns:  V(x) Tensor of shape [batch_size, 1]
+        """
+        return self.net(x)
+       

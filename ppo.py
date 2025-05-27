@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import torch
-from nn import PPONet
+from nn import PPOPolicyNetwork, PPOValueNetwork
 from tensorboardX import SummaryWriter
 from utils import set_seed
 from torch.distributions import MultivariateNormal
@@ -34,9 +34,11 @@ class PPO:
         self.run_step = 0
         self.optim_step = 0
 
-        self.net = PPONet(self.obs_space, self.act_space).to(self.cfg.sim_device)
+        self.policy_network = PPOPolicyNetwork(self.obs_space, self.act_space).to(self.cfg.sim_device)
+        self.value_network = PPOValueNetwork(self.obs_space).to(self.cfg.sim_device)
         self.action_var = torch.full((self.act_space,), 0.1).to(self.cfg.sim_device)
-        self.optim = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.policy_optim = torch.optim.Adam(self.policy_network.parameters(), lr=self.lr)
+        self.value_optim = torch.optim.Adam(self.value_network.parameters(), lr=self.lr)
         
 
     def make_data(self):
@@ -60,8 +62,8 @@ class PPO:
 
             # compute reward-to-go (target)
             with torch.no_grad():
-                target = reward + self.gamma * self.net.v(next_obs) * done
-                delta = target - self.net.v(obs)
+                target = reward + self.gamma * self.value_network(next_obs) * done
+                delta = target - self.value_network(obs)
 
             # compute advantage
             advantage_lst = []
@@ -85,7 +87,7 @@ class PPO:
             for mini_batch in data:
                 obs, action, old_log_prob, target, advantage = mini_batch
 
-                mu = self.net.pi(obs)
+                mu = self.policy_network(obs)
                 cov_mat = torch.diag(self.action_var)
                 dist = MultivariateNormal(mu, cov_mat)
                 log_prob = dist.log_prob(action)
@@ -95,19 +97,21 @@ class PPO:
                 surr1 = ratio * advantage
                 surr2 = torch.clamp(ratio, 1 - self.clip, 1 + self.clip) * advantage
 
-                loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(self.net.v(obs), target)
+                loss_policy = -torch.min(surr1, surr2)
+                loss_value = F.mse_loss(self.value_network(obs), target)
 
-                self.optim.zero_grad()
-                loss.mean().backward()
-                nn.utils.clip_grad_norm_(self.net.parameters(), 1.0)
-                self.optim.step()
+                self.policy_network.zero_grad(); self.value_network.zero_grad()
+                loss_policy.mean().backward(); loss_value.mean().backward()
+                nn.utils.clip_grad_norm_(self.policy_network.parameters(), 1.0)
+                nn.utils.clip_grad_norm_(self.value_network.parameters(), 1.0)
+                self.policy_optim.step(); self.value_optim.step()
 
                 self.optim_step += 1
 
 
     def get_action(self, obs):
         with torch.no_grad():
-            mu = self.net.pi(obs)
+            mu = self.policy_network(obs)
             cov_mat = torch.diag(self.action_var)
             dist = MultivariateNormal(mu, cov_mat)
             action = dist.sample()
