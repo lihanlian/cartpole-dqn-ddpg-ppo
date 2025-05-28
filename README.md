@@ -1,7 +1,7 @@
 
 # Overview
 
-This repository aims for provding minimal implementation of Deep Q-learning (DQN), Deep Deterministic Policy Graident (DDPG) and Proximal Policy Optimization (PPO) reinforcement learning algorithms **without** using any RL libraries (only PyTorch is used). All algorithms are tested in the cartpole environment of [Isaac Gym](https://github.com/isaac-sim/IsaacGymEnvs) simulator using **Ubuntu 20.04** operating system and **Python 3.8**. Implementation details and walk through of algorithms can be found at this [blog post](https://lihanlian.github.io/posts/blog6).
+This repository aims for provding minimal implementation of Deep Q-learning (DQN), Deep Deterministic Policy Graident (DDPG) and Proximal Policy Optimization (PPO) reinforcement learning algorithms **without** using any RL libraries (only PyTorch is used). All algorithms are tested in the cartpole environment of [Isaac Gym](https://github.com/isaac-sim/IsaacGymEnvs) simulator using **Ubuntu 20.04** operating system and **Python 3.8**. Implementation details and walk through of algorithms can be found at these blog posts: [blog post1](https://lihanlian.github.io/posts/blog6)(DQN & DDPG), [blog post2](https://lihanlian.github.io/posts/blog7)(PPO).
 
 **Example (DQN and training curves)**
 <p align="center">
